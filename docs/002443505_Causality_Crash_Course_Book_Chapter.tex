@@ -1,0 +1,424 @@
+\documentclass[12pt]{book}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{caption}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{hyperref}
+\geometry{margin=1in}
+\usepackage{makeidx}
+\makeindex
+
+
+\title{Crash Course in Causality Assignment}
+\author{Sathvik Vadavatha}
+\date{\today} 
+
+\begin{document}
+
+\maketitle
+
+
+\chapter{Deep Dive into Causality}
+
+\section{Introduction to Causality}
+
+Causality lies at the heart of scientific discovery and is a foundational principle in both Data Science and Machine Learning. While predictive models are often concerned with correlations, understanding *why* something happens — and how to intervene — requires a causal lens.
+
+In Data Science, causal inference allows us to answer questions such as:
+\begin{itemize}
+    \item What is the effect of changing tire strategy on the probability of winning an F1 race?
+    \item If a safety car is deployed mid-race, how does it impact final driver positions?
+\end{itemize}
+
+The goal of this chapter is to guide you from foundational concepts to practical tools for drawing causal conclusions from data, particularly using real-world analogies from Formula 1 racing.
+
+\subsection*{Why Causality Matters in Machine Learning}
+
+Traditional machine learning models, such as regression or classification algorithms, optimize for predictive accuracy. However, they often fall short in scenarios that require decision-making or policy interventions.
+
+\textbf{Example:} Suppose a model predicts that rain increases the number of DNFs (Did Not Finish) in Formula 1 races. Does that mean rain \textit{causes} DNFs, or are there other lurking variables (e.g., lower visibility, different tire compounds)?
+
+\subsection*{Types of Questions Causal Inference Can Answer}
+
+\begin{itemize}
+    \item \textbf{Interventional}: What happens to Y if we do X?
+    \item \textbf{Counterfactual}: What would have happened if we had not done X?
+    \item \textbf{Attributional}: How much of Y was caused by X?
+\end{itemize}
+
+Understanding these distinctions enables a practitioner to go beyond prediction and into explanation, diagnosis, and optimization.
+
+\section{Correlation vs Causation}
+
+A common misconception in data analysis is equating correlation with causation. While correlated variables often appear related, they may not share a causal connection.
+
+\subsection*{F1 Case Study: Pit Stops and Winning Probability}
+
+Let's say we analyze F1 race data and observe that drivers who pit early are more likely to finish in the top 5. This correlation may lead to the false conclusion that early pit stops \textit{cause} better outcomes.
+
+However, there may be a hidden variable: top teams with faster cars often pit earlier due to flexible strategy. So, it's not the pit stop timing that directly causes the better placement — it's team performance.
+
+
+
+\subsection*{Equation Formulation}
+
+We often use the Pearson correlation coefficient \( r \) to measure linear association:
+
+\[
+r = \frac{\sum (x_i - \bar{x})(y_i - \bar{y})}{\sqrt{\sum (x_i - \bar{x})^2} \sqrt{\sum (y_i - \bar{y})^2}}
+\]
+
+However, a high \( r \) value does not imply a causal relationship.
+
+\subsection*{Example Table: Driver Pit Stop Timing vs Placement}
+
+\begin{table}[H]
+\centering
+\caption{Pit Stop Timing and Race Results (Simplified Example)}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Driver} & \textbf{Pit Lap} & \textbf{Finish Position} & \textbf{Team} \\ \midrule
+Hamilton       & 12              & 1                         & Mercedes       \\
+Verstappen     & 14              & 2                         & Red Bull       \\
+Alonso         & 10              & 5                         & Aston Martin   \\
+Zhou Guanyu    & 24              & 18                        & Alfa Romeo     \\
+Magnussen      & 25              & 16                        & Haas           \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This table may suggest a trend, but we must dig deeper to establish a causal explanation.
+
+\subsection*{Key Takeaway}
+
+Correlation may help identify patterns, but only causal inference can guide decisions and interventions.
+
+\section{Causal Diagrams (Directed Acyclic Graphs)}
+
+Directed Acyclic Graphs (DAGs) are visual representations of causal relationships between variables. Each node represents a variable, and directed edges (arrows) represent causal influence.
+
+\subsection*{Why DAGs Matter}
+
+DAGs help us:
+\begin{itemize}
+    \item Identify confounding variables
+    \item Determine valid adjustment sets
+    \item Design better experiments and interventions
+\end{itemize}
+
+\subsection*{Formula 1 Example: Weather, Pit Strategy, and Finishing Position}
+
+Suppose we want to understand the impact of pit strategy on race outcome. The weather might influence both the strategy and the outcome.
+
+
+
+\textbf{Explanation:}
+\begin{itemize}
+    \item Weather → Pit Strategy (teams choose different tires in wet/dry conditions)
+    \item Pit Strategy → Finishing Position (strategy can affect pace)
+    \item Weather → Finishing Position (indirectly via visibility, grip)
+\end{itemize}
+
+In this case, to estimate the causal effect of pit strategy on the outcome, we must adjust for the confounder — Weather.
+
+\subsection*{Backdoor Criterion}
+
+To identify a valid adjustment set, we use the **Backdoor Criterion**:
+\begin{quote}
+A set of variables \( Z \) satisfies the backdoor criterion relative to an ordered pair of variables \( (X, Y) \) in a DAG if:
+\begin{itemize}
+    \item No node in \( Z \) is a descendant of \( X \)
+    \item \( Z \) blocks every path between \( X \) and \( Y \) that contains an arrow into \( X \)
+\end{itemize}
+\end{quote}
+
+This ensures we're isolating the true causal path from X to Y.
+
+\section{Counterfactual Reasoning}
+
+Counterfactuals ask "what if" questions and are crucial for personalized decision-making. They imagine an alternate world where a different action was taken.
+
+\subsection*{F1 Example: What if Hamilton had taken Soft Tires instead of Mediums?}
+
+Imagine Hamilton finished second using medium tires. We want to know: *Would he have won the race had he switched to soft tires during the final pit stop?*
+
+\textbf{This is a counterfactual query:}
+\[
+Y_{X=soft}
+\]
+where:
+\begin{itemize}
+    \item \( Y \): Final position
+    \item \( X \): Tire choice (actual = Medium, counterfactual = Soft)
+\end{itemize}
+
+\subsection*{Structural Causal Models (SCMs)}
+
+Counterfactuals are often evaluated using SCMs:
+
+\begin{itemize}
+    \item Define a set of equations: \( Y = f_X(X, U) \)
+    \item Replace \( X \) with desired counterfactual value
+    \item Compute the outcome using the same noise term \( U \)
+\end{itemize}
+
+\subsection*{Example SCM}
+
+\begin{align*}
+    U_1 &\sim \mathcal{N}(0, 1) \\
+    \text{Lap Time} &= f_1(\text{Tire Type}, U_1) \\
+    \text{Final Position} &= f_2(\text{Lap Time}, \text{Pit Strategy})
+\end{align*}
+
+By changing Tire Type and keeping \( U_1 \) fixed, we simulate the counterfactual world.
+
+\subsection*{Use Cases in Data Science}
+
+\begin{itemize}
+    \item Recommender Systems: Would the user have clicked a different item?
+    \item Marketing: What if we offered a 20\% discount instead of 10\%?
+    \item Medical ML: Would the patient have improved under an alternative treatment?
+\end{itemize}
+
+Counterfactuals power **individual-level** decisions — a crucial step toward actionable AI.
+
+\section{Causal Inference Techniques}
+
+Once we understand causal diagrams and counterfactual reasoning, the next step is to estimate causal effects using real-world data. This section introduces widely-used causal inference techniques.
+
+\subsection*{1. Randomized Controlled Trials (RCTs)}
+
+RCTs are the gold standard for causal inference. Participants are randomly assigned to treatment and control groups, ensuring there are no confounding variables.
+
+\textbf{F1 Analogy:} Imagine FIA randomly assigns different tire compounds to teams before a race. Since the assignment is random, any performance differences can be causally attributed to the tire type.
+
+However, RCTs are often impractical or unethical, especially in observational domains like business or healthcare.
+
+\subsection*{2. Matching Methods}
+
+Matching tries to simulate a randomized experiment by pairing individuals with similar characteristics but different treatments.
+
+\textbf{Example:} To assess the effect of pit strategy, we can match drivers with similar qualifying positions, car performance, and weather conditions — then compare outcomes based on different strategies.
+
+\subsection*{3. Propensity Score Matching (PSM)}
+
+Propensity scores represent the probability of receiving treatment given observed covariates. PSM reduces bias by comparing treated and untreated units with similar scores.
+
+Formally:
+\[
+e(X) = P(T = 1 \mid X)
+\]
+Where \( T \) is treatment assignment and \( X \) are observed covariates.
+
+\subsection*{4. Instrumental Variables (IV)}
+
+When unobserved confounding exists, IVs can be used. An instrument is a variable that affects the treatment but not the outcome (except through the treatment).
+
+\textbf{F1 Example:} A rule change (e.g., mandatory pit window) that affects pit stop timing but not final performance directly could act as an instrument.
+
+\subsection*{5. Difference-in-Differences (DiD)}
+
+Used in time-series data to estimate causal effects when before-and-after data is available for both treatment and control groups.
+
+\textbf{F1 Example:} Compare team performance before and after a regulation change (e.g., cost cap) using teams unaffected by the rule as controls.
+
+\[
+\text{DiD} = (\bar{Y}_{\text{treatment, after}} - \bar{Y}_{\text{treatment, before}}) - (\bar{Y}_{\text{control, after}} - \bar{Y}_{\text{control, before}})
+\]
+
+Each method has assumptions — so understanding the data context is critical for applying the right one.
+
+\section{Applications of Causal ML in the Real World}
+
+Causal reasoning is reshaping how we approach problems across industries, shifting from *prediction* to *actionable decision-making*.
+
+\subsection*{1. Healthcare}
+
+- \textbf{Question:} Does a new treatment reduce patient recovery time?
+- Causal ML helps simulate randomized trials from observational EHR data.
+- Techniques: Propensity score matching, uplift modeling.
+
+\subsection*{2. Marketing and Business Strategy}
+
+- \textbf{Question:} What’s the effect of a 10\% discount on customer retention?
+- A/B testing + uplift modeling can optimize ad targeting and promotions.
+
+\subsection*{3. Economics and Policy}
+
+- Used to estimate impact of laws, subsidies, or interventions.
+- Techniques like DiD and IVs are frequently applied.
+
+\subsection*{4. Sports Analytics — Formula 1 Case Study}
+
+Formula 1 provides a rich testbed for causal analysis:
+
+\begin{itemize}
+    \item \textbf{Tire Strategy:} Evaluate how soft vs hard compounds affect race pace.
+    \item \textbf{Weather:} Estimate the effect of rain on DNF probabilities.
+    \item \textbf{Regulations:} Measure performance impact of cost cap or ground-effect rule.
+    \item \textbf{DRS Zones:} Quantify overtaking likelihood with and without DRS.
+\end{itemize}
+
+\textbf{Example:} Using historical data, we estimate:
+\[
+P(\text{Win} \mid \text{Soft tires}) - P(\text{Win} \mid \text{Hard tires})
+\]
+
+This gives a treatment effect of tire choice on race win probability, enabling strategic decisions.
+
+\subsection*{5. Personalization and Recommendation}
+
+- Counterfactuals help answer: “What would the user have done if shown another recommendation?”
+- Applications in e-commerce, music, and news feed curation.
+
+\subsection*{Summary}
+
+From improving race strategies in F1 to saving lives in healthcare, causal ML is critical for systems that don’t just learn patterns but also help us act wisely in the real world.
+
+\section{Tools and Frameworks for Causal Inference}
+
+With the rising importance of causal analysis in data science, several powerful Python libraries have emerged to simplify causal modeling, estimation, and validation.
+
+\subsection*{1. DoWhy}
+
+DoWhy is a Python library by Microsoft for causal inference that emphasizes transparency and testability.
+
+\textbf{Key Features:}
+\begin{itemize}
+    \item Graph-based causal modeling
+    \item Estimation using matching, propensity scores, and more
+    \item Refutation tests to validate causal claims
+\end{itemize}
+
+\texttt{pip install dowhy}
+
+\subsection*{2. EconML}
+
+Developed by Microsoft, EconML focuses on heterogeneous treatment effects using machine learning.
+
+\textbf{Example Use:} Estimating how the effect of pit strategies varies across circuits in F1.
+
+\texttt{pip install econml}
+
+\subsection*{3. PyWhy (CausalPy, Pyro Causal)}
+
+An evolving ecosystem for probabilistic causal modeling. It supports Bayesian inference and integration with Pyro.
+
+\subsection*{4. CausalNex}
+
+Developed by QuantumBlack (McKinsey), CausalNex enables creation of DAGs from data, intervention simulations, and Bayesian modeling.
+
+\subsection*{5. Other Tools}
+
+\begin{itemize}
+    \item \textbf{causalimpact} — Google's Bayesian structural time series for impact estimation.
+    \item \textbf{TETRAD} — GUI-based tool from Carnegie Mellon for causal discovery.
+    \item \textbf{Lingam} — For discovering non-Gaussian causal structures.
+\end{itemize}
+
+\subsection*{Sample Workflow with DoWhy}
+
+\begin{enumerate}
+    \item Define the causal graph
+    \item Identify valid estimators using backdoor/IV criteria
+    \item Estimate the treatment effect
+    \item Run refutation checks (e.g., placebo treatment)
+\end{enumerate}
+
+These tools empower analysts to move beyond black-box modeling and reason about interventions in a principled way.
+
+\section{Challenges and Limitations}
+
+While causal inference is powerful, it comes with its own challenges that must be carefully considered.
+
+\subsection*{1. Unobserved Confounding}
+
+If a confounder is not measured or available in the data, it can bias the causal estimate.
+
+\textbf{F1 Example:} Car upgrades between races may influence both qualifying performance and final position — but if we don’t record them, our estimates may be flawed.
+
+\subsection*{2. Selection Bias}
+
+When the data collected is not representative of the population, the conclusions drawn may not generalize.
+
+\textbf{Example:} Analyzing pit strategies only from top teams may miss how they affect midfield drivers differently.
+
+\subsection*{3. Model Misspecification}
+
+Incorrect assumptions in the causal model (e.g., wrong DAG structure or treatment relationships) can lead to invalid inferences.
+
+\subsection*{4. Identifiability}
+
+In some cases, it's not possible to estimate the causal effect from available data — no adjustment set exists, or instrumental variables are weak.
+
+\subsection*{5. Data Limitations}
+
+Temporal resolution, missing data, and poor variable definitions can all limit the success of causal methods.
+
+\textbf{Best Practice:} Always perform robustness checks, sensitivity analyses, and clearly document assumptions.
+
+\section{Conclusion and Takeaways}
+
+Causality transforms the way we use data — from predicting outcomes to understanding mechanisms, making decisions, and optimizing interventions. In the realm of Data Science and Machine Learning, causal thinking adds depth and responsibility to our models.
+
+\subsection*{Key Lessons from this Chapter}
+
+\begin{itemize}
+    \item Correlation is not causation — we need causal models and assumptions.
+    \item DAGs help visualize and reason about causal paths and confounders.
+    \item Techniques like matching, IV, DiD, and counterfactuals enable causal estimation from data.
+    \item Tools like DoWhy and EconML bring these techniques to practice.
+    \item Real-world applications in Formula 1 illustrate the power of causal reasoning — from strategy design to performance analysis.
+\end{itemize}
+
+\subsection*{Final Thoughts}
+
+As the world becomes more data-driven, the need for causal literacy is greater than ever. Whether you're optimizing race strategies, tailoring medical treatments, or evaluating policy interventions, causality equips you with the tools to ask better questions — and answer them with confidence.
+
+\bigskip
+
+\noindent\textit{“Prediction is good, but understanding is better.”}
+
+\begin{thebibliography}{9}
+
+\bibitem{pearl2009causality}
+Judea Pearl,
+\textit{Causality: Models, Reasoning, and Inference}. 
+Cambridge University Press, 2009.
+
+\bibitem{imbensrubin}
+Guido W. Imbens and Donald B. Rubin,
+\textit{Causal Inference in Statistics, Social, and Biomedical Sciences}.
+Cambridge University Press, 2015.
+
+\bibitem{dowhy}
+K. Sharma, A. Ghosh, A. Agarwal, J. Letham, and E. Horvitz, 
+“DoWhy: An End-to-End Library for Causal Inference,” 
+Microsoft Research, \url{https://github.com/py-why/dowhy}, 2020.
+
+\bibitem{econml}
+Microsoft Research, 
+“EconML: A Python Package for ML-Based Heterogeneous Treatment Effects Estimation,” 
+\url{https://github.com/microsoft/EconML}, 2019.
+
+\bibitem{causalimpact}
+Kay H. Brodersen et al.,
+“Inferring causal impact using Bayesian structural time-series models,” 
+\textit{Annals of Applied Statistics}, 2015.
+
+\bibitem{f1dataset}
+Ergast Developer API, 
+“Formula 1 Race Data,” 
+\url{https://ergast.com/mrd/}, Accessed 2025.
+
+\bibitem{peters2017}
+J. Peters, D. Janzing, and B. Schölkopf,
+\textit{Elements of Causal Inference: Foundations and Learning Algorithms}.
+MIT Press, 2017.
+
+\end{thebibliography}
+
+
+\end{document}
